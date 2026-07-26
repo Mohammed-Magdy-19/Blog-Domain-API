@@ -1,5 +1,5 @@
-import { verifyToken } from "../config/jwt.js";
-import { User } from "../models/User.js";
+import { verifyToken } from "../Config/jwt.js";
+import User from "../Models/User.js";
 
 export const protect = async (req, res, next) => {
     const header = req.headers.authorization || "";
@@ -8,7 +8,8 @@ export const protect = async (req, res, next) => {
     if (!token) return res.status(401).json({ message: "No token" });
 
     try {
-        req.user = verifyToken(token);
+        const decoded = verifyToken(token);
+        req.user = decoded;
         const user = await User.findById(decoded.id);
         if (user.logoutTime && user.logoutTime < new Date()) {
             return res

@@ -5,27 +5,15 @@ import { ObjectId } from "mongodb";
 
 const createTask = async (req, res) => {
     try {
-        const { title, completed, owner, dueDate } = req.body;
-
-        if (!mongoose.Types.ObjectId.isValid(owner)) {
-            const error = new Error("Id is not valid");
-            error.statusCode = 400;
-            throw error;
-        }
-
-        const userExists = await User.exists({ _id: owner });
-        if (!userExists) {
-            const error = new Error("User is not found");
-            error.statusCode = 404;
-            throw error;
-        }
+        const { title, completed, dueDate } = req.body;
+        const owner = req.user.id;
 
         const task = new Task({ title, completed, owner, dueDate });
         await task.save();
 
         return res.status(201).json({ message: "Task is added successfully" });
     } catch (error) {
-        return res.status(error.statusCode ?? 400).json({ message: error.message ?? "Task is not added successfully" });
+        return res.status(400).json({ message: error.message ?? "Task is not added successfully" });
     }
 };
 
