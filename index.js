@@ -5,6 +5,7 @@ import connectToDatabase from "./src/Config/db.js";
 import userRouter from "./src/Routers/userRouter.js";
 import postRouter from "./src/Routers/postRouter.js";
 import taskRouter from "./src/Routers/taskRouter.js";
+import authRouter from "./src/Routers/authRouter.js";
 
 dotenv.config();
 const port = process.env.PORT;
@@ -18,5 +19,6 @@ connectToDatabase();
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/posts", postRouter);
 app.use("/api/v1/tasks", taskRouter);
+app.use("/api/v1/auth", authRouter);
 
 app.listen(port);
