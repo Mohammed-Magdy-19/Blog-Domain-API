@@ -1,10 +1,11 @@
 import { ObjectId } from "mongodb";
 import User from "../Models/User.js";
+import { signToken } from "../config/jwt.js";
 
 const createUser = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
-        const user = new User({ name, email, password, role });
+        const { name, email, password } = req.body;
+        const user = new User({ name, email, password});
         await user.save();
         const token = signToken(user._id);
         return res.status(201).json({ message: "User is added successfully", token });
