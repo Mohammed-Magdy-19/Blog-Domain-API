@@ -6,7 +6,8 @@ const createUser = async (req, res) => {
         const { name, email, password, role } = req.body;
         const user = new User({ name, email, password, role });
         await user.save();
-        return res.status(201).json({ message: "User is added successfully" });
+        const token = signToken(user._id);
+        return res.status(201).json({ message: "User is added successfully", token });
     } catch (error) {
         return res.status(400).json({ message: error.message ?? "User is not added successfully" });
     }
