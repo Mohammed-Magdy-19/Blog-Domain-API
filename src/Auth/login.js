@@ -1,5 +1,5 @@
-import { signToken } from "../config/jwt";
-import User from "../Models/User";
+import { signToken } from "../config/jwt.js";
+import User from "../Models/User.js";
 import bcrypt from "bcrypt";
 
 export const login = async (req, res) => {
