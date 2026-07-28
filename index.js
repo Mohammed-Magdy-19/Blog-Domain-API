@@ -6,6 +6,8 @@ import userRouter from "./src/Routers/userRouter.js";
 import postRouter from "./src/Routers/postRouter.js";
 import taskRouter from "./src/Routers/taskRouter.js";
 import authRouter from "./src/Routers/authRouter.js";
+import { errorHandlingMiddleware } from "./src/Middleware/errorHandlingMiddleware.js";
+import asyncHandler from "express-async-handler"
 
 dotenv.config();
 const port = process.env.PORT;
@@ -16,9 +18,10 @@ app.use(express.json());
 
 connectToDatabase();
 
-app.use("/api/v1/users", userRouter);
-app.use("/api/v1/posts", postRouter);
-app.use("/api/v1/tasks", taskRouter);
+app.use("/api/v1/users", asyncHandler(userRouter));
+app.use("/api/v1/posts", asyncHandler(postRouter));
+app.use("/api/v1/tasks", asyncHandler(taskRouter));
 app.use("/api/v1/auth", authRouter);
+app.use(errorHandlingMiddleware);
 
 app.listen(port);
