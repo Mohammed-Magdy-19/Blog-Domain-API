@@ -1,82 +1,64 @@
-import mongoose from "mongoose";
-import Post from "../Models/Post.js";
-import User from "../Models/User.js";
+import asyncHandler from "express-async-handler";
 import { ObjectId } from "mongodb";
-
+import Post from "../Models/Post.js";
+import AppError from "../utils/AppError.js";
 
 const createPost = async (req, res) => {
-    try {
-        const { text, imagesUrls, author } = req.body;
+    const { text, imagesUrls } = req.body;
+    const author = req.user.id; // trust the token, not the request body
 
-        if (!mongoose.Types.ObjectId.isValid(author)) {
-            const error = new Error("Id is not valid");
-            error.statusCode = 400;
-            throw error;
-        }
+    const post = new Post({ text, imagesUrls, author });
+    await post.save();
 
-        const userExists = await User.exists({ _id: author });
-        if (!userExists) {
-            const error = new Error("User is not found");
-            error.statusCode = 404;
-            throw error;
-        }
-
-        const post = new Post({ text, imagesUrls, author });
-        await post.save();
-
-        return res.status(201).json({ message: "Post is added successfully" });
-    } catch (error) {
-        return res.status(error.statusCode ?? 400).json({ message: error.message ?? "Post is not added successfully" });
-    }
+    return res.status(201).json({ message: "Post is added successfully" });
 };
 
 
 const getAllPosts = async (req, res) => {
-    try {
-        const posts = await Post.find({}).populate("author");
-        return res.status(200).json(posts);
-    } catch (error) {
-        return res.status(400).json({ message: error.message ?? "Posts are not fetched successfully" });
-    }
-}
+    const posts = await Post.find({}).populate("author");
+    return res.status(200).json(posts);
+};
 
 
 const getPostById = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const post = await Post.findById(id).populate("author");
-        return res.status(200).json(post);
-    } catch (error) {
-        return res.status(400).json({ message: error.message ?? "Post is not fetched successfully" });
+    const { id } = req.params;
+    const post = await Post.findById(id).populate("author");
+
+    if (!post) {
+        throw new AppError(`Post not found with id: ${id}`, 404);
     }
-}
+
+    return res.status(200).json(post);
+};
 
 
 const modifyPost = async (req, res) => {
-    try {
-        const { id } = req.params;
+    const { id } = req.params;
+    const { author, ...updateData } = req.body; // defensive strip, in case validate() isn't wired in for this route
 
-        if (!req.body || Object.keys(req.body).length === 0) {
-            return res.status(400).json({ message: "No update data provided" });
-        }
+    const updatedPost = await Post.findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { $set: { ...updateData } },
+        { returnDocument: "after" }
+    );
 
-        const updatedPost = await Post.findOneAndUpdate({ _id: new ObjectId(id) }, { $set: { ...req.body } }, { returnDocument: 'after' });
-
-        return res.status(200).json({ message: "Post is updated successfully", updatedPost });
-    } catch (error) {
-        return res.status(400).json({ message: error.message ?? "Post is not updated successfully" });
+    if (!updatedPost) {
+        throw new AppError(`Post not found with id: ${id}`, 404);
     }
-}
+
+    return res.status(200).json({ message: "Post is updated successfully", updatedPost });
+};
 
 
 const deletePost = async (req, res) => {
-    try {
-        const { id } = req.params;
-        await Post.findOneAndDelete({ _id: new ObjectId(id) });
-        return res.status(200).json({ message: "Post is deleted successfully" });
-    } catch (error) {
-        return res.status(400).json({ message: error.message ?? "Post is not deleted successfully" });
-    }
-}
+    const { id } = req.params;
+    const deletedPost = await Post.findOneAndDelete({ _id: new ObjectId(id) });
 
-export { createPost, getAllPosts, getPostById, modifyPost, deletePost}
+    if (!deletedPost) {
+        throw new AppError(`Post not found with id: ${id}`, 404);
+    }
+
+    return res.status(200).json({ message: "Post is deleted successfully" });
+};
+
+export { createPost, getAllPosts, getPostById, modifyPost, deletePost };
