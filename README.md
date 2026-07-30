@@ -12,8 +12,10 @@ This API is built to support modern application workflows with a simple, maintai
 
 ## Features
 
+- Register and authenticate users with JWT
 - Create, view, update, and delete tasks
-- Associate each task with a registered owner user
+- Create, view, update, and delete posts
+- Associate posts and tasks with the authenticated user
 - Persist data safely in MongoDB using Mongoose
 - Support for task deadlines with `dueDate`
 - Structured RESTful endpoints for frontend and third-party client integration
@@ -158,25 +160,32 @@ The API exposes RESTful routes for users, posts, and tasks.
 | `PUT` | `/api/v1/users/:id` | Update an existing user by ID. | Public |
 | `DELETE` | `/api/v1/users/:id` | Delete a user by ID. | Public |
 
+### Authentication Endpoints
+
+| Method | Endpoint | Description | Access Control |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/auth/register` | Register a new user and return a JWT token. | Public |
+| `POST` | `/api/v1/auth/login` | Authenticate a user and return a JWT token. | Public |
+
 ### Post Endpoints
 
 | Method | Endpoint | Description | Access Control |
 | --- | --- | --- | --- |
-| `GET` | `/api/v1/posts` | Retrieve all posts. | Public |
-| `GET` | `/api/v1/posts/:id` | Retrieve a single post by ID. | Public |
-| `POST` | `/api/v1/posts` | Create a new post. | Public |
-| `PUT` | `/api/v1/posts/:id` | Update an existing post by ID. | Public |
-| `DELETE` | `/api/v1/posts/:id` | Delete a post by ID. | Public |
+| `GET` | `/api/v1/posts` | Retrieve all posts. | Protected (Bearer token) |
+| `GET` | `/api/v1/posts/:id` | Retrieve a single post by ID. | Protected (Bearer token) |
+| `POST` | `/api/v1/posts` | Create a new post. | Protected (Bearer token) |
+| `PUT` | `/api/v1/posts/:id` | Update an existing post by ID. | Protected (Bearer token) |
+| `DELETE` | `/api/v1/posts/:id` | Delete a post by ID. | Protected (Bearer token) |
 
 ### Task Endpoints
 
 | Method | Endpoint | Description | Access Control |
 | --- | --- | --- | --- |
-| `GET` | `/api/v1/tasks` | Retrieve all tasks. | Public |
-| `GET` | `/api/v1/tasks/:id` | Retrieve a single task by ID. | Public |
-| `POST` | `/api/v1/tasks` | Create a new task. | Public |
-| `PUT` | `/api/v1/tasks/:id` | Update an existing task by ID. | Public |
-| `DELETE` | `/api/v1/tasks/:id` | Delete a task by ID. | Public |
+| `GET` | `/api/v1/tasks` | Retrieve all tasks. | Protected (Bearer token) |
+| `GET` | `/api/v1/tasks/:id` | Retrieve a single task by ID. | Protected (Bearer token) |
+| `POST` | `/api/v1/tasks` | Create a new task. | Protected (Bearer token) |
+| `PUT` | `/api/v1/tasks/:id` | Update an existing task by ID. | Protected (Bearer token) |
+| `DELETE` | `/api/v1/tasks/:id` | Delete a task by ID. | Protected (Bearer token) |
 
 ## Example Requests
 
@@ -200,14 +209,16 @@ Content-Type: application/json
 
 ```http
 POST /api/v1/posts
+Authorization: Bearer <token>
 Content-Type: application/json
 ```
+
+> Note: `author` is derived from the authenticated user token and should not be sent in the request body.
 
 ```json
 {
   "text": "This is a sample post content.",
-  "imagesUrls": ["https://example.com/image1.jpg"],
-  "author": "64f1d8a4f1b45a7f0c123456"
+  "imagesUrls": ["https://example.com/image1.jpg"]
 }
 ```
 
@@ -215,14 +226,16 @@ Content-Type: application/json
 
 ```http
 POST /api/v1/tasks
+Authorization: Bearer <token>
 Content-Type: application/json
 ```
+
+> Note: `owner` is derived from the authenticated user token and should not be sent in the request body.
 
 ```json
 {
   "title": "Prepare sprint review",
   "completed": false,
-  "owner": "64f1d8a4f1b45a7f0c123456",
   "dueDate": "2026-07-30T00:00:00.000Z"
 }
 ```
