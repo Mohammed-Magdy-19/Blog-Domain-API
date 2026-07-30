@@ -12,4 +12,4 @@ export const updateUserSchema = z.object({
     email: z.string().email().optional(),
     password: z.string().min(8).optional(),
     role: z.enum(['User', 'Admin']).default('User').optional()
-})
+}).refine((data) => Object.keys(data).length > 0, { message: "No update data provided", });

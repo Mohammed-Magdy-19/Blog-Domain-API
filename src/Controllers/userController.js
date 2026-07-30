@@ -3,6 +3,7 @@ import User from "../Models/User.js";
 import { signToken } from "../config/jwt.js";
 import AppError from "../utils/AppError.js";
 
+
 const createUser = async (req, res) => {
     const { name, email, password } = req.body;
     const user = new User({ name, email, password });
@@ -32,10 +33,6 @@ const getUserById = async (req, res) => {
 
 const modifyUser = async (req, res) => {
     const { id } = req.params;
-
-    if (!req.body || Object.keys(req.body).length === 0) {
-        throw new AppError("No update data provided", 400);
-    }
 
     const updatedUser = await User.findOneAndUpdate(
         { _id: new ObjectId(id) }, { $set: { ...req.body } }, { returnDocument: "after" }
