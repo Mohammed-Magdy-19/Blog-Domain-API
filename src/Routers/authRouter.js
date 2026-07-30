@@ -9,6 +9,6 @@ import { protect } from "../Middleware/authMiddleware.js";
 const authRouter = express.Router()
 
 authRouter.post("/register",validate(createUserSchema) ,asyncHandler(createUser));
-authRouter.post("/login", asyncHandler(protect) ,asyncHandler(login));
+authRouter.post("/login", asyncHandler(login));
 
 export default authRouter;
