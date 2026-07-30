@@ -16,7 +16,7 @@ export const errorHandlingMiddleware = (err, req, res, next) => {
         message = `Invalid ${err.path}: ${err.value}`;
     }
 
-    // ---- mongodb driver: invalid ObjectId string, e.g. `new ObjectId(id)` ----
+    // ---- mongodb driver: invalid ObjectId string, e.g. `new ObjectId(id)` in modifyUser/deleteUser ----
     else if (err.name === 'BSONError') {
         statusCode = 400;
         message = 'Invalid id format';
@@ -43,12 +43,26 @@ export const errorHandlingMiddleware = (err, req, res, next) => {
         message = 'Token expired, please log in again';
     }
 
+    // ---- jsonwebtoken: token used before its `nbf` (not-before) claim ----
+    else if (err.name === 'NotBeforeError') {
+        statusCode = 401;
+        message = 'Token not yet active';
+    }
+
     // ---- zod: schema validation error ----
     else if (err.name === 'ZodError') {
         statusCode = 400;
         message = err.issues
             .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
             .join(', ');
+    }
+
+    // ---- bcrypt: malformed/corrupted hash passed to compare() (e.g. bad data in DB) ----
+    // bcrypt throws a plain Error (no distinct `name`), so we match on the message text.
+    // This is genuinely unexpected (data corruption), so it's kept as a 500, just relabeled.
+    else if (typeof err.message === 'string' && err.message.includes('Not a valid BCrypt hash')) {
+        statusCode = 500;
+        message = 'Something went wrong while verifying credentials';
     }
 
     // ---- express 5 / body-parser: malformed JSON in request body ----

@@ -1,5 +1,4 @@
 import { ObjectId } from "mongodb";
-import asyncHandler from "express-async-handler";
 import User from "../Models/User.js";
 import { signToken } from "../config/jwt.js";
 import AppError from "../utils/AppError.js";
