@@ -16,6 +16,12 @@ export const errorHandlingMiddleware = (err, req, res, next) => {
         message = `Invalid ${err.path}: ${err.value}`;
     }
 
+    // ---- mongodb driver: invalid ObjectId string, e.g. `new ObjectId(id)` ----
+    else if (err.name === 'BSONError') {
+        statusCode = 400;
+        message = 'Invalid id format';
+    }
+
     // ---- MongoDB: duplicate key (unique index) ----
     else if (err.code === 11000) {
         statusCode = 409;
